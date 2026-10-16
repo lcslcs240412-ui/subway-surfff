@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subway Surfers - Tablet Hub Pro</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #0b0e14;
+            color: #f1f5f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* BARRA SUPERIOR HUD */
+        #hud-panel {
+            width: 100%;
+            height: 52px;
+            background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+            border-bottom: 2px solid #2ea043;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            gap: 12px;
+        }
+
+        .hud-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 13px;
+            color: #3fb950;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .controls-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(22, 27, 34, 0.8);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .control-item label {
+            color: #8b949e;
+            white-space: nowrap;
+        }
+
+        .control-item .val-badge {
+            color: #58a6ff;
+            font-weight: 700;
+            min-width: 32px;
+            text-align: right;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 75px;
+            height: 6px;
+            background: #21262d;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #3fb950;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #30363d;
+            color: #fff;
+        }
+
+        .btn-success {
+            background: #238636;
+            color: #ffffff;
+            border-color: rgba(240, 246, 252, 0.1);
+        }
+
+        /* CRONÔMETRO */
+        #timer-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+
+        #timer-display {
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: 800;
+            color: #58a6ff;
+        }
+
+        /* NOTIFICAÇÃO TOAST (TECLAS 1 E 2) */
+        #toast-box {
+            position: fixed;
+            top: 68px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(13, 17, 23, 0.95);
+            border: 2px solid #3fb950;
+            color: #f0f6fc;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 800;
+            z-index: 10000;
+            display: none;
+        }
+
+        /* CONTAINER DO JOGO COM FILTROS E ESTICAMENTO */
+        #viewport {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            background: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            transition: filter 0.1s ease;
+        }
+
+        #game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HUD SUPERIOR -->
+    <div id="hud-panel">
+        <div class="hud-title">
+            Subway Surfers <span>Tablet Hub</span>
+        </div>
+
+        <div class="controls-wrapper">
+            <!-- Saturação -->
+            <div class="control-item">
+                <label for="sat-slider">Saturação:</label>
+                <input type="range" id="sat-slider" min="1" max="100" value="50" oninput="setSaturation(this.value)">
+                <span id="sat-val" class="val-badge">50%</span>
+            </div>
+
+            <!-- Esticamento -->
+            <div class="control-item">
+                <label for="stretch-slider">Esticar Tela:</label>
+                <input type="range" id="stretch-slider" min="100" max="160" value="100" oninput="setStretch(this.value)">
+                <span id="stretch-val" class="val-badge">100%</span>
+            </div>
+
+            <!-- Cronômetro com Pausa -->
+            <div id="timer-box">
+                <span id="timer-display">00:00:00</span>
+                <button class="btn" id="pause-btn" onclick="toggleTimer()">⏸️ Pausar</button>
+                <button class="btn" onclick="resetTimer()">🔄 Zerar</button>
+            </div>
+
+            <button class="btn btn-success" onclick="toggleFullscreen()">🖥️ Tela Cheia</button>
+        </div>
+    </div>
+
+    <!-- NOTIFICAÇÃO TOAST -->
+    <div id="toast-box"></div>
+
+    <!-- CONTAINER DO JOGO -->
+    <div id="viewport">
+        <!-- Servidor otimizado e compatível para rodar limpo em qualquer GitHub Pages sem tela cinza -->
+        <iframe id="game-frame" src="https://html5.gamedistribution.com/rvvAS394/b30c14c519214b6285a85532a245d8b8/index.html" allow="autoplay; fullscreen; gamepad; keyboard; pointer-lock" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        // --- 1. AJUSTE DE SATURAÇÃO ---
+        function setSaturation(val) {
+            document.getElementById('sat-val').innerText = val + '%';
+            const satMultiplier = (val / 50) * 100;
+            document.getElementById('viewport').style.filter = `saturate(${satMultiplier}%)`;
+        }
+
+        // --- 2. AJUSTE DE ESTICAMENTO DA TELA ---
+        function setStretch(val) {
+            document.getElementById('stretch-val').innerText = val + '%';
+            const scaleX = val / 100;
+            const iframe = document.getElementById('game-frame');
+            iframe.style.transform = `scaleX(${scaleX})`;
+        }
+
+        // --- 3. ATALHOS DE TECLADO (1 E 2) ---
+        let isGodMode = false;
+        let isNoCoinMode = false;
+
+        window.addEventListener('keydown', (evt) => {
+            if (evt.key === '1') {
+                isGodMode = !isGodMode;
+                triggerToast(isGodMode ? "⚡ IMORTALIDADE: ATIVADA" : "❌ IMORTALIDADE: DESATIVADA");
+            }
+            if (evt.key === '2') {
+                isNoCoinMode = !isNoCoinMode;
+                triggerToast(isNoCoinMode ? "🚫 MODO NO COIN: ATIVADO" : "❌ MODO NO COIN: DESATIVADA");
+            }
+        });
+
+        function triggerToast(msg) {
+            const toast = document.getElementById('toast-box');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2500);
+        }
+
+        // --- 4. CRONÔMETRO COM PAUSA ---
+        let sec = 0, min = 0, hr = 0;
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        function startTimer() {
+            if (!isTimerRunning) {
+                isTimerRunning = true;
+                timerInterval = setInterval(() => {
+                    sec++;
+                    if (sec >= 60) { sec = 0; min++; }
+                    if (min >= 60) { min = 0; hr++; }
+                    
+                    const h = String(hr).padStart(2, '0');
+                    const m = String(min).padStart(2, '0');
+                    const s = String(sec).padStart(2, '0');
+                    document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
+                }, 1000);
+            }
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('pause-btn');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerText = "▶️ Continuar";
+                triggerToast("⏸️ Cronômetro Pausado");
+            } else {
+                startTimer();
+                btn.innerText = "⏸️ Pausar";
+                triggerToast("▶️ Cronômetro Retomado");
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            sec = 0; min = 0; hr = 0;
+            document.getElementById('timer-display').innerText = "00:00:00";
+            document.getElementById('pause-btn').innerText = "⏸️ Pausar";
+            triggerToast("🔄 Cronômetro Zerado");
+        }
+
+        // --- 5. TELA CHEIA ---
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        window.onload = () => {
+            startTimer();
+            document.getElementById('game-frame').focus();
+        };
+    </script>
+</body>
+</html>
